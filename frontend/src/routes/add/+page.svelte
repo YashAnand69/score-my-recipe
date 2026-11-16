@@ -5,7 +5,11 @@
 	import OnboardingBanner from '$lib/ui/OnboardingBanner.svelte';
 	import HelperTooltip from '$lib/ui/HelperTooltip.svelte';
 	import RecipeExamples from '$lib/ui/RecipeExamples.svelte';
+	import RecipeDetailsFields from '$lib/ui/RecipeDetailsFields.svelte';
+	import type { RecipeDraft } from '$lib/types/recipe';
 
+	let title = $state('');
+	let description = $state('');
 	let recipeText = $state('');
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
@@ -24,7 +28,8 @@
 			const lang = getLocale().split('-')[0];
 			const result = await parseRecipeText(recipeText, lang);
 			const ingredients = apiIngredientsToIngredients(result.ingredients);
-			await goto('/score', { state: { ingredients } });
+			const state: RecipeDraft = { title, description, ingredients };
+			await goto('/score', { state });
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Une erreur est survenue';
 			isLoading = false;
@@ -78,6 +83,9 @@
 
 	<!-- Recipe Form -->
 	<form onsubmit={handleSubmit} class="space-y-6">
+		<!-- Optional recipe metadata, carried to the edit view -->
+		<RecipeDetailsFields bind:title bind:description />
+
 		<div class="form-control w-full space-y-2">
 			<!-- Field label -->
 			<div class="flex items-center justify-between">
@@ -96,7 +104,13 @@
 			</div>
 
 			<!-- Example recipe shortcuts (honors UI language) -->
-			<RecipeExamples onselect={(text) => (recipeText = text)} />
+			<RecipeExamples
+				onselect={(text, name) => {
+					recipeText = text;
+					// use the example name as title, unless the user already typed one
+					if (title.trim() === '') title = name;
+				}}
+			/>
 
 			<textarea
 				id="recipe-text"

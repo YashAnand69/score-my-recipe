@@ -2,11 +2,13 @@
   Recipe Editor Page
 
   Main page for creating and editing recipes.
-  Holds the shared state (ingredients + green-score) and orchestrates the
-  computation. The row edition logic lives in `RecipeRowEditor` and the score
-  display (logo + limitations) lives in `ScoreDisplay`.
+  Holds the shared state (recipe metadata + ingredients + green-score) and
+  orchestrates the computation. The row edition logic lives in
+  `RecipeRowEditor` and the score display (logo + limitations) lives in
+  `ScoreDisplay`.
 
   Features:
+  - Editable recipe title and description at the top (metadata only, not scored)
   - Dynamic ingredient lines (adds new line when typing in the last empty line)
   - Computes the green-score automatically after a delay of inactivity or on demand
 -->
@@ -16,24 +18,27 @@
 	import RecipeRowEditor from '$lib/ui/RecipeRowEditor.svelte';
 	import ScoreDisplay from '$lib/ui/ScoreDisplay.svelte';
 	import CountrySelect from '$lib/ui/CountrySelect.svelte';
+	import RecipeDetailsFields from '$lib/ui/RecipeDetailsFields.svelte';
 	import { createEmptyIngredient } from '$lib/types/ingredient';
 	import { addEmptyIngredientIfNeeded, countNonEmptyIngredients } from '$lib/types/ingredientsList';
 	import type { IngredientsList } from '$lib/types/ingredientsList';
-	import {
-		isIngredientNotEmpty,
-		ingredientSignature,
-		type Ingredient
-	} from '$lib/types/ingredient';
+	import type { RecipeDraft } from '$lib/types/recipe';
+	import { isIngredientNotEmpty, ingredientSignature } from '$lib/types/ingredient';
 	import { computeGreenScore, type GreenScoreResponse } from '$lib/api/recipe';
 	import { getLocale as getLocaleKey } from '$lib/i18n';
 
 	/**
-	 * Initial ingredients coming from the `/add` page (passed via `goto` state).
-	 * Falls back to a single empty line when no state is provided.
+	 * Draft recipe coming from the `/add` page (passed via `goto` state).
+	 * Empty when the editor is opened directly.
+	 */
+	const initialDraft = (page.state ?? {}) as Partial<RecipeDraft>;
+
+	/**
+	 * Initial ingredients from the draft. Falls back to a single empty line
+	 * when no state is provided.
 	 */
 	function getInitialIngredients(): IngredientsList {
-		const state = (page.state ?? {}) as { ingredients?: Ingredient[] };
-		const stateIngredients = state.ingredients;
+		const stateIngredients = initialDraft.ingredients;
 		if (stateIngredients && stateIngredients.length > 0) {
 			// we need an empty line at the end for the user to add new ingredients
 			return addEmptyIngredientIfNeeded(stateIngredients);
@@ -42,6 +47,11 @@
 	}
 
 	// --- Shared state -------------------------------------------------------
+	// Recipe metadata: editable here and pre-filled from /add. It is not sent
+	// to the score API and does not trigger a recomputation.
+	let title = $state(initialDraft.title ?? '');
+	let description = $state(initialDraft.description ?? '');
+
 	// Recipe state - starts with one empty ingredient line, or with parsed ingredients from /add
 	let ingredients = $state<IngredientsList>(getInitialIngredients());
 
@@ -150,16 +160,14 @@
 </script>
 
 <svelte:head>
-	<title>{$_('recipe.title', { default: 'Recipe Editor' })}</title>
+	<title>{title.trim() || $_('recipe.title', { default: 'Recipe Editor' })}</title>
 </svelte:head>
 
 <div class="mx-auto max-w-7xl px-4 py-8">
-	<!-- Header -->
+	<!-- Recipe details (replace the former static header) -->
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold">{$_('recipe.title', { default: 'Recipe Editor' })}</h1>
-		<p class="text-base-content/70 mt-2">
-			{$_('recipe.description', { default: 'Add ingredients to your recipe' })}
-		</p>
+		<h1 class="sr-only">{title.trim() || $_('recipe.title', { default: 'Recipe Editor' })}</h1>
+		<RecipeDetailsFields bind:title bind:description headingTitle />
 	</div>
 
 	<!-- Ingredients List (row edition logic delegated to RecipeRowEditor) -->

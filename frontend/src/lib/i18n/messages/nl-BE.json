@@ -45,6 +45,10 @@
 	"recipe": {
 		"title": "Recepteneditor",
 		"description": "Voeg ingrediënten toe aan je recept",
+		"title_label": "Recipe title",
+		"title_placeholder": "e.g. Quiche Lorraine",
+		"description_label": "Description",
+		"description_placeholder": "Optional short description",
 		"ingredient_name": "Naam ingrediënt",
 		"ingredient_name_placeholder": "bijv. Tomaat",
 		"weight": "Gewicht (g)",

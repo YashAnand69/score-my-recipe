@@ -45,6 +45,10 @@
 	"recipe": {
 		"title": "Éditeur de recettes",
 		"description": "Ajoutez des ingrédients à votre recette",
+		"title_label": "Recipe title",
+		"title_placeholder": "e.g. Quiche Lorraine",
+		"description_label": "Description",
+		"description_placeholder": "Optional short description",
 		"ingredient_name": "Nom de l'ingrédient",
 		"ingredient_name_placeholder": "ex. Tomate",
 		"weight": "Poids (g)",
