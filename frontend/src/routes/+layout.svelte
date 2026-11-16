@@ -13,7 +13,7 @@
 	let { children }: LayoutProps = $props();
 </script>
 
-<Matomo url={MATOMO_HOST} siteId={MATOMO_SITE_ID} disableCookies />
+<Matomo url={MATOMO_HOST} siteId={MATOMO_SITE_ID} doNotTrack disableCookies />
 
 <svelte:head>
 	<title>Open Food Facts for recipes</title>
