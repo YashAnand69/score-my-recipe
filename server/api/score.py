@@ -208,6 +208,9 @@ async def gather_labels_bonus(
         # filter some labels based on the ingredient type, if needed
         labels_to_apply = []
         for label in ingredient.labels:
+            if label.id not in labels_bonus:
+                metric.add_note("notes.label_not_scored", label_id=label.id, label=label.label)
+                continue
             if label.id in labels_restrictions:
                 if (
                     ingredient.codified_ingredient
@@ -222,7 +225,7 @@ async def gather_labels_bonus(
             labels_to_apply.append(label.id)
         if not labels_to_apply:
             continue
-        max_bonus = max(labels_bonus.get(label_id, -1) for label_id in labels_to_apply)
+        max_bonus = max(labels_bonus[label_id] for label_id in labels_to_apply)
         if max_bonus > 0:
             metric.labels_bonus = max_bonus
 

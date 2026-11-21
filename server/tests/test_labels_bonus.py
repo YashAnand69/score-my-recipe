@@ -185,7 +185,11 @@ async def test_gather_labels_bonus_unknown_label_keeps_none(agribalyse_index):
         recipe_metrics = await score.gather_ef_metrics(recipe)
         score.compute_ratios(recipe_metrics)
         await score.gather_labels_bonus(recipe, recipe_metrics)
-    assert recipe_metrics.metrics[0].labels_bonus is None
+    metric = recipe_metrics.metrics[0]
+    assert metric.labels_bonus is None
+    assert [(note.id, note.params["label_id"]) for note in metric.notes] == [
+        ("notes.label_not_scored", "en:unknown-label"),
+    ]
 
 
 @pytest.mark.asyncio

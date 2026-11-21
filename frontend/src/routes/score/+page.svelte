@@ -163,7 +163,11 @@
 	</div>
 
 	<!-- Ingredients List (row edition logic delegated to RecipeRowEditor) -->
-	<RecipeRowEditor bind:ingredients {missingIngredientIds} />
+	<RecipeRowEditor
+		bind:ingredients
+		{missingIngredientIds}
+		ingredientNotes={isScoreLoading ? undefined : greenScore?.ingredientsNotes}
+	/>
 
 	<!-- Actions -->
 	<div class="mt-6 flex flex-wrap items-end gap-4">

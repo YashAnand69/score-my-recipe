@@ -13,6 +13,7 @@
   - onDelete: Callback when delete button is clicked
 -->
 <script lang="ts">
+	import type { components } from '../../api-schema';
 	import { _ } from '$lib/i18n';
 	import Tags from './Tags.svelte';
 	import HelperTooltip from './HelperTooltip.svelte';
@@ -32,6 +33,7 @@
 		isLastItem?: boolean;
 		// Ingredient ids flagged as missing in the last computed green-score.
 		missingIngredientIds?: string[];
+		scoreNotes?: components['schemas']['Note'][];
 		onDelete?: (id: string) => void;
 		onNotEmpty?: () => void; // Optional callback for when line becomes non-empty
 	};
@@ -41,12 +43,23 @@
 		isFirstItem = false, // eslint-disable-line @typescript-eslint/no-unused-vars
 		isLastItem = false,
 		missingIngredientIds = [],
+		scoreNotes = [],
 		onDelete,
 		onNotEmpty
 	}: Props = $props();
 
 	/** Whether this ingredient was not accounted for in the last green-score. */
 	let isMissing = $derived(missingIngredientIds.includes(ingredient.id));
+	let unscoredLabelNotes = $derived(
+		scoreNotes.filter(
+			(note) =>
+				note.id === 'notes.label_not_scored' &&
+				note.message &&
+				ingredient.labels.some(
+					(label) => label.id === note.params.label_id && label.label === note.params.label
+				)
+		)
+	);
 
 	// Track if this ingredient was empty when the component was created
 	// This is used to detect when user starts typing in an empty last line
@@ -319,6 +332,16 @@
 			</span>
 		</label>
 		<Tags tagtype="labels" bind:tags={ingredient.labels} />
+		{#if unscoredLabelNotes.length}
+			<ul class="text-warning-content bg-warning/20 mt-1 rounded-sm px-2 py-1 text-xs">
+				{#each unscoredLabelNotes as note (note)}
+					<li class="flex items-start gap-1">
+						<IconMdiAlertOutline class="h-4 w-4 shrink-0" aria-hidden="true" />
+						{note.message}
+					</li>
+				{/each}
+			</ul>
+		{/if}
 	</div>
 
 	<!-- Fresh fruit/vegetable + seasonality -->

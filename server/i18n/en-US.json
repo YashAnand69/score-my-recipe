@@ -2,6 +2,7 @@
 	"notes": {
 		"dropped_origins": "Dropped origins because multiple origins are not supported: {origins}",
 		"label_restricted": "Label {label_id} bonus does not apply to ingredient {ingredient_id}",
+		"label_not_scored": "Label {label} was not included in the Green-Score.",
 		"epi": {
 			"label_bonus": "EPI modifier: not applied, ingredient has a label bonus (EPI and label bonuses are not cumulative)",
 			"no_origin": "EPI modifier: no origin provided, defaulting to world",
