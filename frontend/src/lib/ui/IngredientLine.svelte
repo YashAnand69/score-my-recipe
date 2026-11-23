@@ -53,11 +53,7 @@
 	let unscoredLabelNotes = $derived(
 		scoreNotes.filter(
 			(note) =>
-				note.id === 'notes.label_not_scored' &&
-				note.message &&
-				ingredient.labels.some(
-					(label) => label.id === note.params.label_id && label.label === note.params.label
-				)
+				['notes.label_not_scored', 'notes.label_restricted'].includes(note.id)
 		)
 	);
 
