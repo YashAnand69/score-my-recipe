@@ -187,6 +187,7 @@ async def test_gather_labels_bonus_unknown_label_keeps_none(agribalyse_index):
         await score.gather_labels_bonus(recipe, recipe_metrics)
     metric = recipe_metrics.metrics[0]
     assert metric.labels_bonus is None
+    assert metric.notes is not None
     assert [(note.id, note.params["label_id"]) for note in metric.notes] == [
         ("notes.label_not_scored", "en:unknown-label"),
     ]
