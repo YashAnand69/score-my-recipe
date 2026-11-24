@@ -1,7 +1,7 @@
 {
 	"notes": {
 		"dropped_origins": "Origines ignorées car les origines multiples ne sont pas prises en charge : {origins}",
-		"label_restricted": "Le bonus du label {label_id} ne s'applique pas à l'ingrédient {ingredient_id}",
+		"label_restricted": "Le bonus du label {label} ne s'applique pas à l'ingrédient {ingredient_id}",
 		"label_not_scored": "Le label {label} n’a pas été pris en compte dans le Green-Score.",
 		"epi": {
 			"label_bonus": "Modificateur EPI : non appliqué, l'ingrédient bénéficie d'un bonus de label (les bonus EPI et label ne sont pas cumulables)",

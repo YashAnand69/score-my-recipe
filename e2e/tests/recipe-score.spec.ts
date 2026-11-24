@@ -80,10 +80,12 @@ test.describe('Recipe green-score integration', () => {
 		const unsupportedLabel = 'Certification inventée';
 		await labels.locator('input').fill(unsupportedLabel);
 		await labels.locator('input').press('Enter');
-		const warning = page.getByText(
-			`Le label ${unsupportedLabel} n’a pas été pris en compte dans le Green-Score.`
-		);
-		await expect(warning).toBeVisible({ timeout: 15_000 });
+		// The warning lives in a tooltip on a sign next to the labels label:
+		// its screen-reader text carries the note message.
+		const warning = page.locator('span.sr-only', {
+			hasText: `Le label ${unsupportedLabel} n’a pas été pris en compte dans le Green-Score.`
+		});
+		await expect(warning).toBeAttached({ timeout: 15_000 });
 		await labels.getByRole('button', { name: `Remove tag "${unsupportedLabel}"` }).click();
 		await expect(warning).toHaveCount(0);
 

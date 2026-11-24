@@ -209,7 +209,7 @@ async def gather_labels_bonus(
         labels_to_apply = []
         for label in ingredient.labels:
             if label.id not in labels_bonus:
-                metric.add_note("notes.label_not_scored", label_id=label.id, label=label.label)
+                metric.add_note("notes.label_not_scored", label=label.label)
                 continue
             if label.id in labels_restrictions:
                 if (
@@ -218,8 +218,8 @@ async def gather_labels_bonus(
                 ):
                     metric.add_note(
                         "notes.label_restricted",
-                        label_id=label.id,
                         ingredient_id=ingredient.codified_ingredient.id,
+                        label=label.label,
                     )
                     continue
             labels_to_apply.append(label.id)

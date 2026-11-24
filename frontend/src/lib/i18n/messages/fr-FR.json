@@ -79,7 +79,8 @@
 		"ingredient_zero_quantity_tooltip": "La quantité de l'ingrédient est de 0g et il ne peut donc être pris en compte dans le calcul.",
 		"ingredient_conversion_error": "Erreur de conversion",
 		"ingredient_conversion_error_tooltip": "La quantité n'a pas pu être convertie en grammes pour cette unité. Essayez une autre unité ou quantité.",
-		"ingredient_scorable": "Cet ingrédient peut être comptabilisé dans le green-score"
+		"ingredient_scorable": "Cet ingrédient peut être comptabilisé dans le green-score",
+		"ingredient_labels_not_scored": "Certains labels ne sont pas pris en compte dans le Green-Score"
 	},
 	"homepage": {
 		"title": "Score My Recipe - Open Food Facts",

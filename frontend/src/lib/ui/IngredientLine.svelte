@@ -50,12 +50,17 @@
 
 	/** Whether this ingredient was not accounted for in the last green-score. */
 	let isMissing = $derived(missingIngredientIds.includes(ingredient.id));
-	let unscoredLabelNotes = $derived(
-		scoreNotes.filter(
-			(note) =>
-				['notes.label_not_scored', 'notes.label_restricted'].includes(note.id)
+	/** Notes explaining why some labels were not used in the last green-score. */
+	let labelNotes = $derived(
+		scoreNotes.filter((note) =>
+			['notes.label_not_scored', 'notes.label_restricted'].includes(note.id)
 		)
 	);
+
+	/** Distinct messages of ``labelNotes``, shown together in the label warning tooltip. */
+	let labelNotesTip = $derived([
+		...new Set(labelNotes.map((note) => note.message).filter(Boolean))
+	] as string[]);
 
 	// Track if this ingredient was empty when the component was created
 	// This is used to detect when user starts typing in an empty last line
@@ -325,19 +330,27 @@
 					})}
 					ariaLabel={$_('helpers.more_info', { default: 'More information' })}
 				/>
+				{#if labelNotesTip.length}
+					<!-- Stop icon is itself the tooltip trigger (via HelperTooltip's
+					     custom icon snippet) listing why some labels are not scored,
+					     mirroring the zero-quantity / not-accounted warnings. -->
+					<HelperTooltip
+						tip={labelNotesTip.join('\n')}
+						ariaLabel={$_('recipe.ingredient_labels_not_scored', {
+							default: 'Some labels are not included in the Green-Score'
+						})}
+					>
+						{#snippet icon()}
+							<IconMdiAlertOutline
+								class="text-warning h-4 w-4 shrink-0 transition-colors duration-200"
+								aria-hidden="true"
+							/>
+						{/snippet}
+					</HelperTooltip>
+				{/if}
 			</span>
 		</label>
 		<Tags tagtype="labels" bind:tags={ingredient.labels} />
-		{#if unscoredLabelNotes.length}
-			<ul class="text-warning-content bg-warning/20 mt-1 rounded-sm px-2 py-1 text-xs">
-				{#each unscoredLabelNotes as note (note)}
-					<li class="flex items-start gap-1">
-						<IconMdiAlertOutline class="h-4 w-4 shrink-0" aria-hidden="true" />
-						{note.message}
-					</li>
-				{/each}
-			</ul>
-		{/if}
 	</div>
 
 	<!-- Fresh fruit/vegetable + seasonality -->
