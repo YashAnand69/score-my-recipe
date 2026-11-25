@@ -85,6 +85,7 @@
 		"ingredient_conversion_error": "Conversion error",
 		"ingredient_conversion_error_tooltip": "The quantity could not be converted to grams for this unit. Try a different unit or quantity.",
 		"ingredient_scorable": "This ingredient can be counted in the green score",
+		"ingredient_labels_not_scored": "Some labels are not included in the Green-Score",
 		"save_recipe": "Save recipe",
 		"saved_not_found": "This saved recipe could not be found. It may have been deleted."
 	},

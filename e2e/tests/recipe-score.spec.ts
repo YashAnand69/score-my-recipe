@@ -47,6 +47,16 @@ test.describe('Recipe green-score integration', () => {
 	test('user opens the page in French, parses a recipe and sees the green score', async ({
 		page
 	}) => {
+		// Keep the fixture-based flow independent of third-party assets and telemetry.
+		await page.route('**/*', async (route) => {
+			const { hostname } = new URL(route.request().url());
+			if (hostname === 'localhost' || hostname === '127.0.0.1') {
+				await route.continue();
+			} else {
+				await route.abort();
+			}
+		});
+
 		// 1. Open the home page (default locale is English).
 		await page.goto('/');
 		// Wait for SvelteKit hydration so the onchange handler is attached.
@@ -89,7 +99,21 @@ test.describe('Recipe green-score integration', () => {
 		expect(letterGrade).toMatch(/^(A\+|[A-F])$/);
 		expect(letterGrade).toBe(EXPECTED_LETTER_GRADE);
 
-		// 10. Assert the numeric score is also displayed (format: "XX.X/100").
+		// A free-text certification is retained, but the score does not use it.
+		const labels = page.locator('label[for^="ingredient-labels-"]').first().locator('..');
+		const unsupportedLabel = 'Certification inventée';
+		await labels.locator('input').fill(unsupportedLabel);
+		await labels.locator('input').press('Enter');
+		// The warning lives in a tooltip on a sign next to the labels label:
+		// its screen-reader text carries the note message.
+		const warning = page.locator('span.sr-only', {
+			hasText: `Le label ${unsupportedLabel} n’a pas été pris en compte dans le Green-Score.`
+		});
+		await expect(warning).toBeAttached({ timeout: 15_000 });
+		await labels.getByRole('button', { name: `Remove tag "${unsupportedLabel}"` }).click();
+		await expect(warning).toHaveCount(0);
+
+		// 9. Assert the numeric score is also displayed (format: "XX.X/100").
 		await expect(page.getByText(/\d+\.\d+\/100/)).toBeVisible();
 
 		// 11. Verify the metadata is still editable on the edit view and that the

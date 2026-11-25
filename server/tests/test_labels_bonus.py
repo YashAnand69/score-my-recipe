@@ -185,7 +185,37 @@ async def test_gather_labels_bonus_unknown_label_keeps_none(agribalyse_index):
         recipe_metrics = await score.gather_ef_metrics(recipe)
         score.compute_ratios(recipe_metrics)
         await score.gather_labels_bonus(recipe, recipe_metrics)
-    assert recipe_metrics.metrics[0].labels_bonus is None
+    metric = recipe_metrics.metrics[0]
+    assert metric.labels_bonus is None
+    assert metric.notes is not None
+    assert [(note.id, note.params["label"]) for note in metric.notes] == [
+        ("notes.label_not_scored", "en:unknown-label"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_gather_labels_bonus_restricted_label_adds_note(agribalyse_index):
+    """A label whose bonus is restricted to other ingredients adds a note instead."""
+    labels_taxonomy = create_taxonomy({"fr:label-rouge": create_taxonomy_node("fr:label-rouge")})
+    ingredients_taxonomy = create_taxonomy(
+        {
+            "en:apple": create_taxonomy_node(
+                "en:apple", properties={"agribalyse_food_code": {"en": "10001"}}
+            ),
+            "en:beef": create_taxonomy_node("en:beef"),
+        }
+    )
+    recipe = [build_ingredient_obj("i1", "apple", "en:apple", labels=["fr:label-rouge"])]
+    with patch_ingredients_taxonomy(ingredients_taxonomy), patch_labels_taxonomy(labels_taxonomy):
+        recipe_metrics = await score.gather_ef_metrics(recipe)
+        score.compute_ratios(recipe_metrics)
+        await score.gather_labels_bonus(recipe, recipe_metrics)
+    metric = recipe_metrics.metrics[0]
+    assert metric.labels_bonus is None
+    assert metric.notes is not None
+    assert [(note.id, note.params) for note in metric.notes] == [
+        ("notes.label_restricted", {"ingredient_id": "en:apple", "label": "fr:label-rouge"}),
+    ]
 
 
 @pytest.mark.asyncio

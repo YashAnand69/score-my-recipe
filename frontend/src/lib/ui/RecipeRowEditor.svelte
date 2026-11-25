@@ -12,6 +12,7 @@
   - ingredients: The full list of ingredients (bindable, owned by the parent page).
 -->
 <script lang="ts">
+	import type { GreenScoreResponse } from '$lib/api/recipe';
 	import IngredientLine from './IngredientLine.svelte';
 	import { removeIngredientFromList, addEmptyIngredientIfNeeded } from '$lib/types/ingredientsList';
 	import type { IngredientsList } from '$lib/types/ingredientsList';
@@ -20,9 +21,10 @@
 		ingredients: IngredientsList;
 		/** Ingredient ids flagged as missing in the last computed green-score. */
 		missingIngredientIds?: string[];
+		ingredientNotes?: GreenScoreResponse['ingredientsNotes'];
 	};
 
-	let { ingredients = $bindable(), missingIngredientIds = [] }: Props = $props();
+	let { ingredients = $bindable(), missingIngredientIds = [], ingredientNotes }: Props = $props();
 
 	/** Handle delete of an ingredient by id. */
 	function handleIngredientDelete(id: string) {
@@ -44,6 +46,7 @@
 			onDelete={handleIngredientDelete}
 			onNotEmpty={addIngredientLine}
 			{missingIngredientIds}
+			scoreNotes={ingredientNotes?.[ingredient.id]}
 		/>
 	{/each}
 </div>

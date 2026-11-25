@@ -13,6 +13,7 @@
   - onDelete: Callback when delete button is clicked
 -->
 <script lang="ts">
+	import type { components } from '../../api-schema';
 	import { _ } from '$lib/i18n';
 	import Tags from './Tags.svelte';
 	import HelperTooltip from './HelperTooltip.svelte';
@@ -32,6 +33,7 @@
 		isLastItem?: boolean;
 		// Ingredient ids flagged as missing in the last computed green-score.
 		missingIngredientIds?: string[];
+		scoreNotes?: components['schemas']['Note'][];
 		onDelete?: (id: string) => void;
 		onNotEmpty?: () => void; // Optional callback for when line becomes non-empty
 	};
@@ -41,12 +43,24 @@
 		isFirstItem = false, // eslint-disable-line @typescript-eslint/no-unused-vars
 		isLastItem = false,
 		missingIngredientIds = [],
+		scoreNotes = [],
 		onDelete,
 		onNotEmpty
 	}: Props = $props();
 
 	/** Whether this ingredient was not accounted for in the last green-score. */
 	let isMissing = $derived(missingIngredientIds.includes(ingredient.id));
+	/** Notes explaining why some labels were not used in the last green-score. */
+	let labelNotes = $derived(
+		scoreNotes.filter((note) =>
+			['notes.label_not_scored', 'notes.label_restricted'].includes(note.id)
+		)
+	);
+
+	/** Distinct messages of ``labelNotes``, shown together in the label warning tooltip. */
+	let labelNotesTip = $derived([
+		...new Set(labelNotes.map((note) => note.message).filter(Boolean))
+	] as string[]);
 
 	// Track if this ingredient was empty when the component was created
 	// This is used to detect when user starts typing in an empty last line
@@ -316,6 +330,24 @@
 					})}
 					ariaLabel={$_('helpers.more_info', { default: 'More information' })}
 				/>
+				{#if labelNotesTip.length}
+					<!-- Stop icon is itself the tooltip trigger (via HelperTooltip's
+					     custom icon snippet) listing why some labels are not scored,
+					     mirroring the zero-quantity / not-accounted warnings. -->
+					<HelperTooltip
+						tip={labelNotesTip.join('\n')}
+						ariaLabel={$_('recipe.ingredient_labels_not_scored', {
+							default: 'Some labels are not included in the Green-Score'
+						})}
+					>
+						{#snippet icon()}
+							<IconMdiAlertOutline
+								class="text-warning h-4 w-4 shrink-0 transition-colors duration-200"
+								aria-hidden="true"
+							/>
+						{/snippet}
+					</HelperTooltip>
+				{/if}
 			</span>
 		</label>
 		<Tags tagtype="labels" bind:tags={ingredient.labels} />

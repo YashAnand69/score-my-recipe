@@ -35,10 +35,6 @@
 	"recipe": {
 		"title": "Éditeur de recettes",
 		"description": "Ajoutez des ingrédients à votre recette",
-		"title_label": "Recipe title",
-		"title_placeholder": "e.g. Quiche Lorraine",
-		"description_label": "Description",
-		"description_placeholder": "Optional short description",
 		"ingredient_name": "Nom de l'ingrédient",
 		"ingredient_name_placeholder": "ex. Tomate",
 		"weight": "Poids (g)",
@@ -67,6 +63,7 @@
 		"ingredient_conversion_error": "Erreur de conversion",
 		"ingredient_conversion_error_tooltip": "La quantité n'a pas pu être convertie en grammes pour cette unité. Essayez une autre unité ou quantité.",
 		"ingredient_scorable": "Cet ingrédient peut être comptabilisé dans le green-score",
+		"ingredient_labels_not_scored": "This ingredient can be counted in the green score",
 		"save_recipe": "Enregistrer la recette",
 		"saved_not_found": "Cette recette enregistrée est introuvable. Elle a peut-être été supprimée."
 	},
