@@ -7,12 +7,50 @@ The frontend translates all user-facing strings with
 
 - Setup: [`frontend/src/lib/i18n/index.ts`](../frontend/src/lib/i18n/index.ts)
   registers every locale and re-exports the `_` store.
-- Messages: one JSON file per locale in
+- Messages: one JSON file per **language** in
   [`frontend/src/lib/i18n/messages/`](../frontend/src/lib/i18n/messages/),
-  e.g. `en-US.json`, `fr-FR.json`. `en-US.json` is the reference source file.
+  e.g. `en-US.json`, `fr.json`, `nl.json`. `en-US.json` is the reference source file.
+  [`messages/index.ts`](../frontend/src/lib/i18n/messages/index.ts) lists which files exist;
+  it is the only place to touch when adding a language.
 - Keys are nested objects, looked up with dot notation: `navbar.score_recipe`.
 - In components: `{$_('navbar.score_recipe', { default: 'Score a recipe' })}`.
   Always keep the `default` fallback (see `frontend/AGENTS.md`).
+
+## One file per language, not per country
+
+Translations are stored once per language (`fr.json`, `nl.json`…).
+A regional code such as `fr-FR` or `nl-BE` loads the file of its language:
+`messagesFileFor` in `index.ts` strips the country part.
+This matters because svelte-i18n resolves `fr-FR` as `fr-FR` → `fr` → `en-US`:
+a `fr.json` next to a `fr-FR.json` would silently act as an override layer,
+and the two files would drift apart with no way to tell which one is authoritative.
+
+Adding a language-specific exception later is still possible:
+put the few differing keys in a regional file and register it in `messages/index.ts`
+instead of adding a whole new language file.
+
+## Locale files are partial, missing keys fall back to `en-US`
+
+`en-US.json` must contain every key.
+Every other locale file may contain **only the keys that were actually translated**;
+a key absent from a locale file is resolved from `en-US.json` at runtime.
+
+This is provided by svelte-i18n itself:
+`init({ fallbackLocale: 'en-US' })` makes lookups walk the current locale and its fallback,
+and the fallback dictionary is loaded together with the requested one,
+so `waitLocale` covers it before the page renders.
+Adding a label therefore only touches `en-US.json` in the repository;
+translations for other languages land later through Crowdin.
+
+Consequences to keep in mind:
+
+- Never copy an English value into another locale file to "complete" it.
+  That hides the fact that the string is untranslated and shadows future `en-US` fixes.
+  `pnpm i18nsync` removes such leftovers.
+- A locale file that is identical to `en-US` is useless: delete it and let the fallback apply.
+- Code that reads `$dictionary` directly must merge `en-US` under the requested locale
+  instead of picking one dictionary (see `getRecipeExamples` in
+  [`frontend/src/lib/ui/recipeExamples.ts`](../frontend/src/lib/ui/recipeExamples.ts)).
 
 ## Formatting messages with parameters
 
@@ -44,9 +82,15 @@ Full syntax reference (plurals, select, number/date skeletons, escaping…):
 
 ## Keeping locale files in sync
 
-`pnpm i18nsync` (in `frontend/`) adds missing keys to every locale from `en-US.json`;
-`pnpm i18ncheck` reports missing/extra keys and placeholder mismatches.
-See [`frontend/scripts/i18n-sync.ts`](../frontend/scripts/i18n-sync.ts).
+`pnpm i18ncheck` (in `frontend/`) fails on keys that no longer exist in `en-US.json`
+and on placeholder mismatches, and prints the translation coverage of each locale.
+Missing keys are **not** an error: they fall back to `en-US`, see above.
+
+`pnpm i18nsync` prunes the keys removed from `en-US.json`,
+and drops the leaves that are identical to `en-US` (untranslated leftovers).
+It never copies English into another locale.
+
+Both live in [`frontend/scripts/i18n-sync.ts`](../frontend/scripts/i18n-sync.ts).
 
 ## Server side: notes returned by the API
 
@@ -96,12 +140,16 @@ Translation files are loaded lazily; set `SCORE_MY_RECIPE_WARMUP=fr,en` to load 
 
 Actual translations are written by the community on the Open Food Facts Crowdin project (<https://translate.openfoodfacts.org>).
 The mapping between the Crowdin project and the files above is configured in [`crowdin.yml`](../crowdin.yml):
-`en-US.json` is the source, and each language is written to `frontend/src/lib/i18n/messages/<locale>.json`.
+`en-US.json` is the source, and each language is written to `frontend/src/lib/i18n/messages/<language>.json`, with the `languages_mapping` collapsing country variants onto the language file (`fr` → `fr.json`, `nl` → `nl.json`…).
 A second entry covers the backend: `server/i18n/en-US.json` is the source, and each language is written to `server/i18n/<locale>.json`, with the same `languages_mapping`.
 That mapping is duplicated as `LOCALE_MAPPING` in `server/api/i18n.py`, and a test guards that both stay identical.
 
 Sync is done by the Crowdin GitHub Action (using `@crowdin/cli` and the `CROWDIN_PROJECT_ID` / `CROWDIN_PERSONAL_TOKEN` secrets), which opens a PR titled `l10n: New Crowdin translations to review and merge`.
 To fix a bad translation, correct it in Crowdin first, so it is not re-applied on the next sync.
+
+Only translated strings are pulled into the locale files (`skip_untranslated_strings: true`
+and `json.preserve_keys_with_empty_values: false`), which keeps the files partial:
+untranslated keys simply stay absent and fall back to `en-US`.
 
 See the Crowdin GitHub Action documentation:
 <https://github.com/crowdin/github-action>
