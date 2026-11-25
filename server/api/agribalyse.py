@@ -283,10 +283,10 @@ def find_agribalyse_row(
     # by its parents when parent search is enabled.
     nodes = [node] if not search_parents else _node_chain(node)
 
-    for prop in INGREDIENT_CODE_PROPERTIES:
-        column = _column_for_property(prop)
-        index = indexes[column]
-        for n in nodes:
+    for n in nodes:
+        for prop in INGREDIENT_CODE_PROPERTIES:
+            column = _column_for_property(prop)
+            index = indexes[column]
             code = _property_value(n, prop)
             if code and code in index:
                 return code, prop, index[code]
